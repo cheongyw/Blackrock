@@ -41,13 +41,12 @@ def send_message(text, chat):
 	url = URL + "sendMessage?text={}&chat_id={}".format(text, chat)
 	get_url(url)
 
+def send_digit(digit,chat):
+	url = URL + "sendMessage?text={}&chat_id={}".format(digit, chat)
+	get_url(url)
+
 
 # Returns the performance for the sixth month
-def sixthMonthReturn():
-	perf_file = urllib.request.urlopen("https://www.blackrock.com/tools/hackathon/performance?&identifiers=ticker%3AIVV&graph=resultMap.RETURNS.latestPerf")
-	data = json.loads(perf_file.read().decode('utf-8'))
-	perf_file.close()
-	return str(data["resultMap"]["RETURNS"][0]["latestPerf"]["sixMonth"])
 	
 #text, chat = get_last_chat_id_and_text(get_updates())
 #send_message(text, chat)
@@ -58,9 +57,14 @@ def main():
 	initialText="Please enter the relevant details."
 	last_textchat=(None,None)
 	while True:
+		perf_file = urllib.request.urlopen("https://www.blackrock.com/tools/hackathon/performance?&identifiers=ticker%3AIVV&graph=resultMap.RETURNS.latestPerf")
+		data = json.loads(perf_file.read())
+		perf_file.close()
+		digit=data["resultMap"]["RETURNS"][0]["latestPerf"]["sixMonth"]
 		text, chat = get_last_chat_id_and_text(get_updates())
 		if (text, chat) != initialText:
-			send_message(sixthMonthReturn,chat)
+			send_digit(digit, chat)
+			
 
 if __name__ == '__main__':
 	main()
