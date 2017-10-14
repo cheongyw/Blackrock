@@ -3,6 +3,9 @@ import json
 import requests
 import time
 import urllib
+from bs4 import BeautifulSoup
+import json
+from pprint import pprint
 
 token='392920506:AAHPmmPeCuqFSBdqf5cswmN2Ew9oj-ZLUtg'
 URL = "https://api.telegram.org/bot{}/".format(token)
@@ -33,11 +36,19 @@ def get_last_chat_id_and_text(updates):
     chat_id = updates["result"][last_update]["message"]["chat"]["id"]
     return (text, chat_id)
 		
-def send_message(text, chat_id):
-    text = urllib.parse.quote_plus(text)
-    url = URL + "sendMessage?text={}&chat_id={}".format(text, chat_id)
-    get_url(url)
+def send_message(text, chat):
+	text = urllib.parse.quote_plus(text)
+	url = URL + "sendMessage?text={}&chat_id={}".format(text, chat)
+	get_url(url)
 
+
+# Returns the performance for the sixth month
+def sixthMonthReturn():
+	perf_file = urllib.request.urlopen("https://www.blackrock.com/tools/hackathon/performance?&identifiers=ticker%3AIVV&graph=resultMap.RETURNS.latestPerf")
+	data = json.loads(perf_file.read().decode('utf-8'))
+	perf_file.close()
+	return str(data["resultMap"]["RETURNS"][0]["latestPerf"]["sixMonth"])
+	
 #text, chat = get_last_chat_id_and_text(get_updates())
 #send_message(text, chat)
 
@@ -48,10 +59,8 @@ def main():
 	last_textchat=(None,None)
 	while True:
 		text, chat = get_last_chat_id_and_text(get_updates())
-		if (text, chat) != last_textchat:
-			send_message(initialText, chat)
-			last_textchat = (text, chat)
-			time.sleep(0.5)
+		if (text, chat) != initialText:
+			send_message(sixthMonthReturn,chat)
 
 if __name__ == '__main__':
 	main()
