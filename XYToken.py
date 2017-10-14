@@ -17,7 +17,7 @@ chat = 171391200
 
 dict = {}
 
-with open('security-universe_20171014(1).csv', newline='', encoding='utf-8') as csvfile:
+with open('security-universe_20171014.csv', newline='', encoding='utf-8') as csvfile:
     securityList = csv.reader(csvfile, delimiter=',', quotechar='|')
     for row in securityList:
         dict[row[1]] = row[0]
@@ -80,7 +80,8 @@ def main():
     update_id=update_id+1
     get_url("https://api.telegram.org/bot{}/getUpdates?offset={}".format(token,update_id))
     initialText = "Please enter the relevant details."
-    errorText = "Please enter a valid stock name."
+    errorText1 = "No performance data available."
+    errorText2 = "Please enter a valid stock name."
     holder = "initial"
     while True:
         if (holder,chat,update_id) !=get_last_chat_id_and_text(get_updates()):
@@ -92,11 +93,13 @@ def main():
                 perf_file = urllib.request.urlopen(urlAddress)
                 data = json.loads(perf_file.read())
                 perf_file.close()
-                digit = data["resultMap"]["RETURNS"][0]["latestPerf"]["sixMonth"]
-                send_digitPhase1(digit, chat)
-                
+                if data["resultMap"] != {}:
+                    digit = data["resultMap"]["RETURNS"][0]["latestPerf"]["sixMonth"]
+                    send_digitPhase1(digit, chat)
+                else:
+                    send_message(errorText1, chat)
             else:
-                send_message(errorText, chat)
+                send_message(errorText2, chat)
 
             holder = stock
             get_url("https://api.telegram.org/bot{}/getUpdates?offset={}".format(token,chat+1))
