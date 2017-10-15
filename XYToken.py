@@ -131,7 +131,6 @@ def main():
         else:
             send_message(initialText, chat)
             while True:
-                time.sleep(0.5)
                 if (holder, chat,update_id) != get_last_chat_id_and_text(get_updates()):
                     break
 
