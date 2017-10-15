@@ -74,7 +74,7 @@ def send_message(text, chat):
 # Sends comments with the addition of the six month performance data.
 
 def send_digitPhase1(digit, chat):
-    text = " For the company listed, the year to date performance is at {}. ".format(
+    text = " For the stock indicated, the year to date performance is {}. ".format(
         str(digit))
     text = urllib.parse.quote_plus(text)
     url = URL + "sendMessage?text={}&chat_id={}".format(text, chat)
@@ -85,7 +85,7 @@ def main():
     stock,chat,update_id = get_last_chat_id_and_text(get_updates())
     update_id=update_id+1
     get_url("https://api.telegram.org/bot{}/getUpdates?offset={}".format(token,update_id))
-    initialText = "Please enter the relevant details."
+    initialText = "Please enter the full name of the stock."
     errorText1 = "No performance data available."
     errorText2 = "Please enter a valid stock name."
     holder = "initial"
@@ -106,15 +106,17 @@ def main():
                     digit = data["resultMap"]["RETURNS"][0]["latestPerf"]["yearToDate"]
                     send_digitPhase1(digit, chat)
                     #Graph plotting and saving, and sending.
+                    
                     x=[3,6,9]
+                    LABELS = ["3 months", "6 months", "9 months"]
                     y=[data["resultMap"]["RETURNS"][0]["latestPerf"]["threeMonth"],data["resultMap"]["RETURNS"][0]["latestPerf"]["sixMonth"],data["resultMap"]["RETURNS"][0]["latestPerf"]["nineMonth"]]
                     fig = plt.figure()
                     ax = fig.add_subplot(111)
-                    ax.set_title("Stock performance")
-                    ax.set_xlabel("months")
-                    ax.set_ylabel("performance")
-                    
-                    ggGraph=plt.hist(x,3, weights=y)
+                    ax.set_title("Stock Performance")
+                    ax.set_xlabel("Period")
+                    ax.set_ylabel("Performance")
+                    ggGraph=plt.hist(x,3, weights=y,rwidth=0.8)
+                    plt.xticks(x, LABELS)
                     ggGraph=plt.savefig('ggGraph.png')
                     bio=open('ggGraph.png','rb')
                     TelegramBot.sendPhoto(chat,bio)
