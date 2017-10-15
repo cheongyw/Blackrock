@@ -4,8 +4,15 @@ import requests
 import time
 import urllib
 import json
-from pprint import pprint
 import csv
+import pandas as pd
+import numpy
+import scipy
+from ggplot import *
+from numpy._distributor_init import NUMPY_MKL
+import io
+import matplotlib.pyplot as plt
+import matplotlib
 
 
 #BARRICK GOLD CORP, APPLE INC
@@ -66,9 +73,8 @@ def send_message(text, chat):
 
 # Sends comments with the addition of the six month performance data.
 
-
 def send_digitPhase1(digit, chat):
-    text = " For the company listed, the six month performance is at {}. ".format(
+    text = " For the company listed, the year to date performance is at {}. ".format(
         str(digit))
     text = urllib.parse.quote_plus(text)
     url = URL + "sendMessage?text={}&chat_id={}".format(text, chat)
@@ -86,28 +92,44 @@ def main():
     while True:
         if (holder,chat,update_id) !=get_last_chat_id_and_text(get_updates()):
             stock, chat,update_id = get_last_chat_id_and_text(get_updates())
-            if stock in dict:
-                ticker = dict[stock]
+            if stock in dict or stock in dict.values():
+                if stock in dict:
+                    ticker = dict[stock]
+                else:
+                    ticker = stock
                 urlAddress = "https://www.blackrock.com/tools/hackathon/performance?&identifiers=ticker%3{}&graph=resultMap.RETURNS.latestPerf".format(
                     ticker)
                 perf_file = urllib.request.urlopen(urlAddress)
                 data = json.loads(perf_file.read())
                 perf_file.close()
                 if data["resultMap"] != {}:
-                    digit = data["resultMap"]["RETURNS"][0]["latestPerf"]["sixMonth"]
+                    digit = data["resultMap"]["RETURNS"][0]["latestPerf"]["yearToDate"]
                     send_digitPhase1(digit, chat)
+                    #Graph plotting and saving, and sending.
+                    x=[3,6,9]
+                    y=[data["resultMap"]["RETURNS"][0]["latestPerf"]["threeMonth"],data["resultMap"]["RETURNS"][0]["latestPerf"]["sixMonth"],data["resultMap"]["RETURNS"][0]["latestPerf"]["nineMonth"]]
+                    fig = plt.figure()
+                    ax = fig.add_subplot(111)
+                    ax.set_title("Stock performance")
+                    ax.set_xlabel("months")
+                    ax.set_ylabel("performance")
+                    
+                    ggGraph=plt.hist(x,3, weights=y)
+                    ggGraph=plt.savefig('ggGraph.png')
+                    bio=open('ggGraph.png','rb')
+                    TelegramBot.sendPhoto(chat,bio)
                 else:
                     send_message(errorText1, chat)
             else:
                 send_message(errorText2, chat)
-
+            time.sleep(0.2)
             holder = stock
             get_url("https://api.telegram.org/bot{}/getUpdates?offset={}".format(token,chat+1))
 
         else:
             send_message(initialText, chat)
             while True:
-                time.sleep(1)
+                time.sleep(0.5)
                 if (holder, chat,update_id) != get_last_chat_id_and_text(get_updates()):
                     break
 
